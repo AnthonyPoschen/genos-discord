@@ -1,0 +1,79 @@
+# Secret genos-discord is created out of band. Do not commit secret values.
+# Keys: DISCORD_BOT_TOKEN, DISCORD_APPLICATION_ID, DISCORD_GUILD_ID,
+# DISCORD_CUSTOMER_ROLE_ID, GENOS_API_ORIGIN, GENOS_DISCORD_BOT_SECRET
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genos-discord
+  namespace: genos-discord
+  labels:
+    app.kubernetes.io/name: genos-discord
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: genos-discord
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: genos-discord
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: genos-discord
+          image: ghcr.io/anthonyposchen/genos-discord:latest
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65532
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: DISCORD_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: genos-discord
+                  key: DISCORD_BOT_TOKEN
+            - name: DISCORD_APPLICATION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: genos-discord
+                  key: DISCORD_APPLICATION_ID
+            - name: DISCORD_GUILD_ID
+              valueFrom:
+                secretKeyRef:
+                  name: genos-discord
+                  key: DISCORD_GUILD_ID
+            - name: DISCORD_CUSTOMER_ROLE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: genos-discord
+                  key: DISCORD_CUSTOMER_ROLE_ID
+            - name: GENOS_API_ORIGIN
+              valueFrom:
+                secretKeyRef:
+                  name: genos-discord
+                  key: GENOS_API_ORIGIN
+            - name: GENOS_DISCORD_BOT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: genos-discord
+                  key: GENOS_DISCORD_BOT_SECRET
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

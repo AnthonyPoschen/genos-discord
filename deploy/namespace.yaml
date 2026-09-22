@@ -1,0 +1,7 @@
+# Suggested namespace. The bot is not part of the Genos control plane.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: genos-discord
+  labels:
+    app.kubernetes.io/name: genos-discord
