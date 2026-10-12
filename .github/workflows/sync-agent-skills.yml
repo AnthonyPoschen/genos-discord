@@ -1,0 +1,36 @@
+name: Sync agent-skills
+
+on:
+  schedule:
+    - cron: '17 20 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-agent-skills
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync skills from AnthonyPoschen/agent-skills
+        id: sync
+        run: |
+          bash scripts/sync-agent-skills.sh
+          echo "sha=$(head -n1 .cursor/skills/.agent-skills-version)" >> "$GITHUB_OUTPUT"
+      - name: Open or update sync PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: bot/sync-agent-skills
+          title: 'chore: sync agent-skills'
+          commit-message: 'chore: sync agent-skills to ${{ steps.sync.outputs.sha }}'
+          body: |
+            Automated sync of `.cursor/skills/` from AnthonyPoschen/agent-skills@${{ steps.sync.outputs.sha }}.
+            Do not edit skills here; change them upstream. Not auto-merged.
+          add-paths: .cursor/skills
+          delete-branch: true
